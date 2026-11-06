@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invasion review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#f6f7f9; --fg:#1d1f24; --muted:#6b7280; --card:#fff; --line:#e3e6ea;
+          --accent:#3494BA; --drop:#dc2626; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#15171b; --fg:#e8eaed; --muted:#9aa0a6; --card:#1e2126; --line:#2c3036; }
+  }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 -apple-system, system-ui, sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--card); border-bottom:1px solid var(--line);
+           padding:10px 16px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:15px; margin:0 8px 0 0; }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--fg);
+           border-radius:6px; padding:6px 12px; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  input[type=range] { vertical-align:middle; width:220px; }
+  .stat { font-variant-numeric:tabular-nums; }
+  .stat b { font-size:16px; }
+  main { padding:16px; display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+  figure { margin:0; background:var(--card); border:1px solid var(--line); border-radius:10px;
+           padding:8px; position:relative; }
+  figure.off { opacity:.4; border-color:var(--drop); border-style:dashed; }
+  canvas { display:block; width:100%; height:auto; border-radius:6px; cursor:pointer; }
+  figcaption { display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+               margin-top:6px; font-variant-numeric:tabular-nums; }
+  figcaption .n { font-weight:600; font-size:15px; }
+  figcaption small { color:var(--muted); word-break:break-all; font-weight:400; }
+  .hint { color:var(--muted); font-size:13px; }
+  .spacer { flex:1; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <label>Threshold <input id="thr" type="range" min="0" max="0.6" step="0.01">
+    <span class="stat" id="thrv"></span></label>
+  <span class="hint">Click a field = exclude / restore it</span>
+  <span class="spacer"></span>
+  <span class="stat" id="summary"></span>
+  <button id="save" class="primary">Save and recompute</button>
+  <button id="done">Done</button>
+  <span id="status" class="hint"></span>
+</header>
+<main id="main"></main>
+<script>
+const DATA = /*__DATA__*/null;
+const S0 = -0.20, S1 = 2.20;                 // scale used by invasion_count.py to save the map
+const store = DATA.store, names = Object.keys(store.fields);
+const KEY = "invasion-review:" + DATA.title;
+
+let thr = store.threshold, drop = new Set();
+const saved = DATA.corrections || {};
+if (saved.threshold != null) thr = saved.threshold;
+if (saved.exclude) drop = new Set(saved.exclude);
+try { const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (d) { thr = d.threshold; drop = new Set(d.exclude); } } catch (e) {}
+
+document.getElementById("title").textContent = DATA.title;
+const views = [];
+
+for (const name of names) {
+  const fig = document.createElement("figure");
+  fig.innerHTML = `<canvas></canvas><figcaption><span class="n"></span><small>${name}</small></figcaption>`;
+  document.getElementById("main").append(fig);
+  const cv = fig.querySelector("canvas");
+  const v = { name, fig, cv, g: cv.getContext("2d"), cap: fig.querySelector(".n"), ready: false };
+  views.push(v);
+  const prev = new Image(), stain = new Image();
+  prev.src = DATA.images[name].prev; stain.src = DATA.images[name].stain;
+  let left = 2;
+  const go = () => { if (--left) return;
+    cv.width = prev.naturalWidth; cv.height = prev.naturalHeight;
+    v.prev = prev;
+    const t = document.createElement("canvas");
+    t.width = cv.width; t.height = cv.height;
+    t.getContext("2d").drawImage(stain, 0, 0, cv.width, cv.height);
+    v.lum = t.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
+    v.ov = new ImageData(cv.width, cv.height);
+    for (let i = 0; i < v.ov.data.length; i += 4) {
+      v.ov.data[i] = 0; v.ov.data[i + 1] = 230; v.ov.data[i + 2] = 90; v.ov.data[i + 3] = 0;
+    }
+    v.tmp = document.createElement("canvas"); v.tmp.width = cv.width; v.tmp.height = cv.height;
+    v.ready = true; draw(v);
+  };
+  prev.onload = go; stain.onload = go;
+  fig.addEventListener("click", () => {
+    drop.has(name) ? drop.delete(name) : drop.add(name);
+    persist(); draw(v); summarise();
+  });
+}
+
+function draw(v) {
+  if (!v.ready) return;
+  const cut = (thr - S0) / (S1 - S0) * 255;
+  const d = v.ov.data, L = v.lum;          // L is grey RGBA: the R channel is the value
+  for (let i = 0; i < d.length; i += 4) d[i + 3] = L[i] > cut ? 125 : 0;
+  v.tmp.getContext("2d").putImageData(v.ov, 0, 0);
+  v.g.drawImage(v.prev, 0, 0);
+  v.g.drawImage(v.tmp, 0, 0);
+  v.fig.classList.toggle("off", drop.has(v.name));
+  v.cap.textContent = area(v.name).toFixed(1) + " %";
+}
+
+const area = n => store.fields[n].curve[thr.toFixed(2)];
+const kept = () => names.filter(n => !drop.has(n));
+
+function summarise() {
+  const a = kept().map(area);
+  const m = a.reduce((s, x) => s + x, 0) / a.length;
+  const sd = Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1));
+  document.getElementById("summary").innerHTML =
+    `<b>${m.toFixed(1)} ± ${sd.toFixed(1)} %</b> &nbsp;<span class="hint">` +
+    `${a.length}/${names.length} fields · CV ${(100 * sd / m).toFixed(0)}%</span>`;
+}
+
+const persist = () => { try {
+  localStorage.setItem(KEY, JSON.stringify({ threshold: thr, exclude: [...drop] })); } catch (e) {} };
+
+const slider = document.getElementById("thr");
+slider.value = thr;
+slider.oninput = e => {
+  thr = +e.target.value;
+  document.getElementById("thrv").textContent = thr.toFixed(2);
+  persist(); views.forEach(draw); summarise();
+};
+document.getElementById("thrv").textContent = thr.toFixed(2);
+summarise();
+
+const status = t => document.getElementById("status").textContent = t;
+document.getElementById("save").onclick = async () => {
+  const body = JSON.stringify({ threshold: thr, exclude: [...drop] }, null, 1);
+  if (!location.protocol.startsWith("http")) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([body], { type: "application/json" }));
+    a.download = "corrections.json"; a.click(); status("downloaded — tell Claude"); return;
+  }
+  status("saving…");
+  const r = await fetch("/save", { method: "POST", body });
+  if (r.ok) { try { localStorage.removeItem(KEY); } catch (e) {} status("saved to the folder ✓"); }
+  else status("save failed");
+};
+document.getElementById("done").onclick = async () => {
+  if (location.protocol.startsWith("http")) { try { await fetch("/done", { method: "POST", body: "" }); } catch (e) {} }
+  status("closed — back to the chat");
+};
+</script>
+</body>
+</html>

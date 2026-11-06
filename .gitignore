@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# output of examples/make_examples.py when run without an OUT_DIR
+plugins/bench-assays/examples/colony/
+plugins/bench-assays/examples/invasion/
