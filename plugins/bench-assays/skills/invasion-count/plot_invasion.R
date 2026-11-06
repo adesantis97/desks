@@ -24,16 +24,16 @@ med <- function(d, v) d %>% group_by(line, condition) %>%
   summarise(m = mean({{ v }}, na.rm = TRUE),
             se = sd({{ v }}, na.rm = TRUE) / sqrt(sum(!is.na({{ v }}))), .groups = "drop")
 
-# --- 1. raw invaded area, one point per replicate
-a <- med(x, area_pct_mean)
+# --- 1. invaded cells per field, one point per replicate
+a <- med(x, cells_mean)
 p_area <- ggplot(a, aes(condition, m, fill = condition)) +
   geom_col(colour = "black", width = 0.65) +
   geom_errorbar(aes(ymin = m - se, ymax = m + se), width = 0.18) +
-  geom_point(data = x, aes(condition, area_pct_mean, shape = replicate),
+  geom_point(data = x, aes(condition, cells_mean, shape = replicate),
              inherit.aes = FALSE, size = 2, position = position_jitter(width = 0.12, height = 0)) +
   scale_fill_manual(values = fill_val) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
-  labs(x = NULL, y = "Invaded area (%)", shape = NULL) +
+  labs(x = NULL, y = "Invaded cells per field", shape = NULL) +
   facet_wrap(~ line, nrow = 1) +
   theme_bw() +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 20, hjust = 1)) +
@@ -49,7 +49,7 @@ p_fc <- ggplot(f, aes(condition, m, fill = condition)) +
   geom_hline(yintercept = 1, linetype = "dashed") +
   scale_fill_manual(values = fill_val) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
-  labs(x = NULL, y = "Invaded area, fold change vs CTRL", shape = NULL) +
+  labs(x = NULL, y = "Invaded cells, fold change vs CTRL", shape = NULL) +
   facet_wrap(~ line, nrow = 1) +
   theme_bw() +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 20, hjust = 1)) +
@@ -62,12 +62,12 @@ if (file.exists(fld)) {
     filter(used) %>%
     mutate(condition = factor(condition, levels = levels(x$condition)),
            line = factor(line, levels = levels(x$line)), replicate = factor(replicate))
-  p_fields <- ggplot(g, aes(condition, area_pct, fill = condition)) +
+  p_fields <- ggplot(g, aes(condition, cells, fill = condition)) +
     geom_boxplot(outlier.shape = NA, width = 0.6) +
     geom_point(aes(shape = replicate), size = 1.4, alpha = .7,
                position = position_jitter(width = 0.14, height = 0)) +
     scale_fill_manual(values = fill_val) +
-    labs(x = NULL, y = "Invaded area (%), single field", shape = NULL) +
+    labs(x = NULL, y = "Invaded cells, single field", shape = NULL) +
     facet_wrap(~ line, nrow = 1) +
     theme_bw() +
     theme(legend.position = "bottom", axis.text.x = element_text(angle = 20, hjust = 1)) +
@@ -75,6 +75,6 @@ if (file.exists(fld)) {
   ggsave(file.path(out, "invasion_fields.png"), p_fields, width = 9, height = 4.2, dpi = 300)
 }
 
-ggsave(file.path(out, "invasion_area.png"), p_area, width = 8, height = 4.2, dpi = 300)
+ggsave(file.path(out, "invasion_cells.png"), p_area, width = 8, height = 4.2, dpi = 300)
 ggsave(file.path(out, "invasion_fc.png"),   p_fc,   width = 8, height = 4.2, dpi = 300)
-cat("wrote invasion_area.png · invasion_fc.png · invasion_fields.png to", out, "\n")
+cat("wrote invasion_cells.png · invasion_fc.png · invasion_fields.png to", out, "\n")

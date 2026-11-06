@@ -10,7 +10,7 @@ description: |
 
 # colony-count
 
-`SKILL_DIR` = the folder that contains this SKILL.md. Dependencies: `pip install numpy pandas pillow scipy scikit-image` (R + tidyverse only for figures).
+`SKILL_DIR` = the folder that contains this SKILL.md. Dependencies: `pip install numpy pandas pillow scipy scikit-image openpyxl` (R + tidyverse only for figures).
 
 ## Where it runs
 - **Claude Code** (the user's own machine): everything as written below. `review` opens the page in their browser.

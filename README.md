@@ -24,7 +24,7 @@ Both need a paid Claude plan (Pro or above).
 **Python** 3.10 to 3.13 (once):
 
 ```
-pip install numpy pandas pillow scipy scikit-image
+pip install numpy pandas pillow scipy scikit-image openpyxl
 ```
 
 In Cowork Claude installs them by itself. R + tidyverse are needed only if you ask for figures.
@@ -33,17 +33,17 @@ In Cowork Claude installs them by itself. R + tidyverse are needed only if you a
 
 - **bench-assays** — quantify bench assays from photos
   - `colony-count` — colony formation assay: counts colonies per dish, mean colony size, fold change vs CTRL
-  - `invasion-count` — Transwell invasion/migration: invaded area per field, mean over fields, fold change over biological replicates
+  - `invasion-count` — Transwell invasion/migration: invaded cells per field (one dot per cell, click to fix), invaded area beside, fold change over biological replicates, Excel table
 
 More plugins are coming (paper writing, lab organisation).
 
 ## How it feels
 
-Drop the photos in a folder and say *"count the colonies"*. Claude runs the detection and opens a review page: you click away the mistakes and get the numbers. For Transwell membranes you move one threshold and every field follows.
+Drop the photos in a folder and say *"count the colonies"*. Claude runs the detection and opens a review page: you click away the mistakes and get the numbers. For Transwell membranes you set one threshold, check one dot per cell and click away the wrong ones.
 
 <p>
   <img src="docs/colony-count.jpg" width="270" alt="colony-count: control vs treated, colonies counted per dish">
-  <img src="docs/invasion-count.jpg" width="270" alt="invasion-count: one threshold, invaded area per field">
+  <img src="docs/invasion-count.jpg" width="270" alt="invasion-count: one threshold, invaded cells per field">
 </p>
 
 ## Try it without your own data

@@ -41,18 +41,23 @@ def colony_plate(n_ctrl=90, n_treated=35):
     return Image.fromarray(np.clip(np.asarray(im) + noise, 0, 255).astype(np.uint8)), truth
 
 
-def invasion_field(coverage):
-    w, h = 900, 680
+def invasion_field(n):
+    """n cells of realistic size (radius ~20-30 px at 1536 px width), some touching, on a pored membrane."""
+    w, h = 1536, 1024
     im = Image.new("RGB", (w, h), (228, 216, 192))
     dr = ImageDraw.Draw(im)
-    for _ in range(int(coverage * w * h / 260)):  # one cell ~ 260 px of area
+    for _ in range(2500):  # membrane pores, drawn under the cells
         x, y = rng.uniform(0, w), rng.uniform(0, h)
-        a, b = rng.uniform(6, 13), rng.uniform(5, 10)
+        dr.ellipse([x - 4, y - 4, x + 4, y + 4], fill=(205, 195, 172))
+    placed = []
+    while len(placed) < n:
+        x, y = rng.uniform(30, w - 30), rng.uniform(30, h - 30)
+        if any((x - px) ** 2 + (y - py) ** 2 < 46 ** 2 for px, py in placed):  # touching is fine, stacked is not
+            continue
+        placed.append((x, y))
+        a, b = rng.uniform(20, 32), rng.uniform(15, 24)
         dr.ellipse([x - a, y - b, x + a, y + b], fill=tuple(int(c + rng.integers(-12, 12)) for c in VIOLET))
-    for _ in range(400):  # membrane pores
-        x, y = rng.uniform(0, w), rng.uniform(0, h)
-        dr.ellipse([x - 1.5, y - 1.5, x + 1.5, y + 1.5], fill=(200, 190, 170))
-    im = im.filter(ImageFilter.GaussianBlur(1.0))
+    im = im.filter(ImageFilter.GaussianBlur(1.2))
     yy, xx = np.mgrid[0:h, 0:w]
     vignette = 1 - 0.18 * (((xx / w - .5) ** 2 + (yy / h - .5) ** 2) / 0.5)
     return Image.fromarray(np.clip(np.asarray(im) * vignette[..., None], 0, 255).astype(np.uint8))
@@ -69,14 +74,14 @@ def main():
     with open(c / "truth.csv", "w", newline="") as f:
         csv.writer(f).writerows([["dish", "condition", "colonies"], [1, "CTRL", truth[0]], [2, "TREATED", truth[1]]])
 
-    rows = [["replicate", "condition", "field", "target_coverage"]]
+    rows = [["replicate", "condition", "field", "cells"]]
     for rep, scale in (("rep1", 1.0), ("rep2", 0.85), ("rep3", 1.15)):
-        for cond, cov in (("CTRL", 0.30), ("TREATED", 0.12)):
+        for cond, mean in (("CTRL", 110), ("TREATED", 45)):
             d = OUT / "invasion" / rep / "LineA" / cond; d.mkdir(parents=True, exist_ok=True)
             for i in range(1, 5):
-                t = cov * scale * rng.uniform(0.85, 1.15)
-                invasion_field(t).save(d / f"field_{i:02d}_20X.jpg", quality=88)
-                rows.append([rep, cond, i, round(t, 3)])
+                n = int(round(mean * scale * rng.uniform(0.85, 1.15)))
+                invasion_field(n).save(d / f"field_{i:02d}_20X.jpg", quality=88)
+                rows.append([rep, cond, i, n])
     with open(OUT / "invasion" / "truth.csv", "w", newline="") as f:
         csv.writer(f).writerows(rows)
     print(f"examples written to {OUT}")

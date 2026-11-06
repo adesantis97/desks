@@ -20,7 +20,7 @@ Quantify bench assays from photos, with a human in the loop.
 
 ## Validation
 
-- Synthetic data (`examples/make_examples.py`): colony counts exact on 2-dish and 6-dish layouts; invasion fold change 0.44 vs 0.40 expected.
+- Synthetic data (`examples/make_examples.py`): colony counts exact on 2-dish and 6-dish layouts; invasion cell counts exact on 24 synthetic fields (fold change 0.412 vs 0.412). Real membranes: confluent fields (> 60% area) give a minimum count.
 - Real data: built and tuned on melanoma and glioblastoma cell lines, crystal-violet stained, phone and microscope photos.
 - Not validated against a blinded manual count: always look at the overlay before trusting a number.
 
