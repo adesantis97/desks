@@ -29,13 +29,12 @@ More plugins are coming (paper writing, lab organisation).
 
 ## How it feels
 
-Drop the photos in a folder and say *"count the colonies"*. Claude writes the plate layout, runs the detection, shows you the overlay and opens a review page:
+Drop the photos in a folder and say *"count the colonies"*. Claude runs the detection and opens a review page: you click away the mistakes and get the numbers. For Transwell membranes you move one threshold and every field follows.
 
-![colony-count overlay](docs/colony-count-overlay.jpg)
-
-For Transwell membranes you move one threshold slider and click away the bad fields:
-
-![invasion-count review](docs/invasion-count-review.jpg)
+<p>
+  <img src="docs/colony-count.jpg" width="270" alt="colony-count: control vs treated, colonies counted per dish">
+  <img src="docs/invasion-count.jpg" width="270" alt="invasion-count: one threshold, invaded area per field">
+</p>
 
 ## Try it without your own data
 
