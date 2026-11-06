@@ -136,7 +136,15 @@ document.getElementById("save").onclick = async () => {
   if (!location.protocol.startsWith("http")) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([body], { type: "application/json" }));
-    a.download = "corrections.json"; a.click(); status("downloaded — tell Claude"); return;
+    a.download = "corrections.json"; a.click();
+    const txt = "corrections.json:\n" + clean();
+    let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
+      const t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select();
+      try { ok = document.execCommand("copy"); } catch (e2) {} t.remove();
+    }
+    status(ok ? "copied ✓ paste it in the chat (also downloaded as corrections.json)" : "downloaded corrections.json: put it in the results folder and tell Claude");
+    return;
   }
   status("saving…");
   const r = await fetch("/save", { method: "POST", body });

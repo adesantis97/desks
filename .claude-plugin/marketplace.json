@@ -9,7 +9,7 @@
       "name": "bench-assays",
       "source": "./plugins/bench-assays",
       "description": "Quantify bench assays from photos with a human in the loop: colony formation (colony-count) and Transwell invasion/migration (invasion-count).",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "science",
       "keywords": ["biology", "wet-lab", "image-analysis", "colony-formation", "transwell", "crystal-violet"]
     }

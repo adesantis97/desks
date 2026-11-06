@@ -118,7 +118,7 @@ def overlay_png(rgb, dishes, dets, out_png, corrections=None):
     font, big = load_font(FONTS, 11), load_font(FONTS_BOLD, 28)
     for d in dishes:
         k = str(d["dish"])
-        cr = (corrections or {}).get(k, {})
+        cr = (corrections or {}).get(k) or (corrections or {}).get("P" + k, {})  # "1" or "P1"
         removed = set(cr.get("remove", []))
         x, y, r = d["cx"] * scale, d["cy"] * scale, d["r"] * scale
         dr.ellipse([x - r, y - r, x + r, y + r], outline=(0, 160, 255), width=2)
@@ -221,7 +221,7 @@ def cmd_apply(a):
         rgb = load_rgb(out / name)
         for d in s["dishes"]:
             k = str(d["dish"])
-            cr = cimg.get(k, {})
+            cr = cimg.get(k) or cimg.get("P" + k, {})  # "1" or "P1"
             rem = set(cr.get("remove", []))
             adds = cr.get("add", [])
             sizes = [c["area"] for c in s["colonies"][k] if c["id"] not in rem]

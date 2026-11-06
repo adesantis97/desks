@@ -1,7 +1,7 @@
 {
   "name": "bench-assays",
   "description": "Quantify bench assays from photos with a human in the loop: colony formation (colony-count) and Transwell invasion/migration (invasion-count).",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": { "name": "adesantis97" },
   "repository": "https://github.com/adesantis97/desks",
   "license": "MIT",

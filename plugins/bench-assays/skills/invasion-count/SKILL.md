@@ -16,6 +16,14 @@ description: |
 
 `SKILL_DIR` = the folder that contains this SKILL.md. Dependencies: `pip install numpy pandas pillow scipy scikit-image` (R + tidyverse only for figures).
 
+## Where it runs
+- **Claude Code** (the user's own machine): everything as written below. `review` opens the page in their browser.
+- **Cowork** (or any sandbox that cannot open the user's browser): work inside the folder the user shared, so they can see the files.
+  - Install the dependencies first; if `pip install` refuses, add `--user` or `--break-system-packages`.
+  - Do **not** run `review` (the page would be served inside the sandbox, out of the user's reach). Instead tell the user to open `<ROOT>/<rep>/<line>/<cond>/_invasion/review.html` from their folder with a double click.
+  - On that page "Save" copies the corrections to the clipboard: the user pastes them in the chat, you write them to `<ROOT>/<rep>/<line>/<cond>/_invasion/corrections.json` and continue as after a save.
+  - No R in the sandbox → skip figures unless `Rscript` exists.
+
 ## The folder tree
 ```
 <ROOT>/<replicate>/<line>/<condition>/*.bmp   ← the 20X photos, ~10 per condition

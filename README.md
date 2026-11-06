@@ -6,18 +6,28 @@ Every skill keeps a human in the loop: Claude does the tedious part, you check i
 
 ## Install
 
+**Claude Code**
+
 ```
 /plugin marketplace add adesantis97/desks
 /plugin install bench-assays@desks
 ```
 
-Python dependencies (once):
+**Cowork** (Claude Desktop app)
+
+1. Customize → Plugins → Add marketplace → `adesantis97/desks`
+2. Install **bench-assays**
+3. Share the folder with your photos and say *"count the colonies"*
+
+Both need a paid Claude plan (Pro or above).
+
+**Python** 3.10 to 3.13 (once):
 
 ```
 pip install numpy pandas pillow scipy scikit-image
 ```
 
-R + tidyverse are needed only if you ask for figures.
+In Cowork Claude installs them by itself. R + tidyverse are needed only if you ask for figures.
 
 ## What's inside
 
