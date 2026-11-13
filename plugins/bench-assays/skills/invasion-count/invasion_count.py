@@ -310,15 +310,17 @@ def cmd_aggregate(a):
     print(S.to_string(index=False))
     xl = ""
     try:  # one Excel file with the three tables, if openpyxl is there
-        with pd.ExcelWriter(root / "invasion.xlsx") as w:
+        # engine forced: with xlsxwriter installed pandas would pick it, and its worksheet has
+        # no .columns (seen 2026-11-13: aggregate printed the table, then crashed)
+        with pd.ExcelWriter(root / "invasion.xlsx", engine="openpyxl") as w:
             for name, df in (("summary", S), ("conditions", C), ("fields", F)):
                 df.to_excel(w, sheet_name=name, index=False)
                 ws = w.sheets[name]; ws.freeze_panes = "A2"
                 for col in ws.columns:
                     ws.column_dimensions[col[0].column_letter].width = max(10, min(40, max(len(str(c.value or "")) for c in col) + 2))
         xl = " · invasion.xlsx"
-    except ImportError:
-        print("(pip install openpyxl for invasion.xlsx)", file=sys.stderr)
+    except Exception as e:  # the CSVs are already written: the Excel is a bonus, never a stop
+        print(f"(no invasion.xlsx: {e}; pip install openpyxl)", file=sys.stderr)
     print(f"\nwrote  invasion_fields.csv · invasion_conditions.csv · invasion_summary.csv{xl}  to {root}")
     if a.plot:
         import subprocess
